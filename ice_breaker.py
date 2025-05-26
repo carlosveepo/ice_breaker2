@@ -1,5 +1,6 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
+import langsmith as langsmith
 import os
 import sys
 #Hack to fix issue wit this file not being able to see the tools.tools.py file for some reason below)
@@ -9,7 +10,7 @@ load_dotenv()
 from agents.product_lookup_agent import lookup as product_lookup_agent
 from output_parsers import Summary, summary_parser
 
-
+@langsmith.traceable
 def ice_break_with(company: str) -> Summary:
     product_list =  product_lookup_agent(company=company)
 

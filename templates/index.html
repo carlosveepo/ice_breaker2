@@ -25,21 +25,9 @@
             <p id="summary"></p>
         </div>
         <div>
-            <h2>Product Info</h2>
-            <div id="Product"></div>
-        </div>
-        <div>
-            <h2>Price</h2>
-            <div id="Price"></div>
-        </div>
-        <div>
-            <h2>Benefit</h2>
-            <div id="Benefit"></div>
-        </div>
-        <div>
-            <h2>Marketing Blurb</h2>
-            <div id="Marketing_Blurb"></div>
-        </div>
+    <h2>Product Info</h2>
+    <div id="ProductList"></div>
+</div>
     </main>
 
     <script>
@@ -62,29 +50,58 @@
                 .then(response => response.json())
                 .then(data => {
                 const parsed = data.summary_and_products;
-
-                // ✅ Properly check ProductList and handle missing case
                 const products = parsed.ProductList || [];
+
                 if (products.length === 0) {
                     alert("No products returned.");
                     spinner.style.display = "none";
                     return;
                 }
 
-                const product = products[0];
-
                 document.getElementById("summary").textContent = parsed.summary;
-                document.getElementById("Product").textContent = product.Product;
-                document.getElementById("Price").textContent = product.Price;
-                createHtmlList(document.getElementById("Benefit"), product.Benefit);
-                document.getElementById("Marketing_Blurb").textContent = product["Marketing Blurb"];
+
+                const productListContainer = document.getElementById("ProductList");
+                productListContainer.innerHTML = "";
+
+                // Loop through and render each product as a card/block
+                products.forEach((product, index) => {
+                    const container = document.createElement("div");
+                    container.style.border = "1px solid #ccc";
+                    container.style.padding = "1em";
+                    container.style.marginBottom = "1em";
+                    container.style.borderRadius = "8px";
+
+                    const title = document.createElement("h3");
+                    title.textContent = `Product ${index + 1}: ${product.Product}`;
+
+                    const price = document.createElement("p");
+                    price.innerHTML = `<strong>Price:</strong> ${product.Price}`;
+
+                    const blurb = document.createElement("p");
+                    blurb.innerHTML = `<strong>Marketing Blurb:</strong> ${product["Marketing Blurb"]}`;
+
+                    const benefitsLabel = document.createElement("p");
+                    benefitsLabel.innerHTML = `<strong>Benefits:</strong>`;
+
+                    const benefitList = document.createElement("ul");
+                    product.Benefit.forEach(b => {
+                        const li = document.createElement("li");
+                        li.textContent = b;
+                        benefitList.appendChild(li);
+                    });
+
+                    // Assemble and append
+                    container.appendChild(title);
+                    container.appendChild(price);
+                    container.appendChild(blurb);
+                    container.appendChild(benefitsLabel);
+                    container.appendChild(benefitList);
+
+                    productListContainer.appendChild(container);
+                });
 
                 spinner.style.display = "none";
                 result.style.display = "";
-                })
-                .catch(error => {
-                alert("Something went wrong: " + error);
-                spinner.style.display = "none";
                 });
         });
 
