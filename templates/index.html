@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ice Breaker</title>
+    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@chgibb/css-spinners@2.2.1/css/spinner/three-quarters.min.css">
+</head>
+<body>
+    <header>
+        <form id="name-form" style="margin: 0 auto">
+            <h1>Ice Breaker</h1>
+            <input type="text" name="name" placeholder="Enter Company Name">
+            <button id="magic-button" type="submit" class="center">Load Products</button>
+        </form>
+    </header>
+
+    <div id="spinner" style="text-align: center; display: none">
+        <span class="three-quarters-loader" style="width: 100px; height: 100px; border-radius: 50%; border-width: 12px;"></span>
+    </div>
+
+    <main id="result" style="display: none">
+        <div>
+            <h2>Summary</h2>
+            <p id="summary"></p>
+        </div>
+        <div>
+            <h2>Product Info</h2>
+            <div id="Product"></div>
+        </div>
+        <div>
+            <h2>Price</h2>
+            <div id="Price"></div>
+        </div>
+        <div>
+            <h2>Benefit</h2>
+            <div id="Benefit"></div>
+        </div>
+        <div>
+            <h2>Marketing Blurb</h2>
+            <div id="Marketing_Blurb"></div>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById("name-form");
+        const spinner = document.getElementById("spinner");
+        const result = document.getElementById("result");
+
+        form.addEventListener("submit", (ev) => {
+            ev.preventDefault();
+
+            result.style.display = "none";
+            spinner.style.display = "";
+
+            const formData = new FormData(form);
+
+            fetch("/process", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("POST request failed");
+                return response.json();
+            })
+            .then(data => {
+                let raw = data.summary_and_products;
+
+                // Strip "Final Answer: " prefix if present
+                if (raw.startsWith("Final Answer:")) {
+                    raw = raw.replace("Final Answer:", "").trim();
+                }
+
+                // Parse the string into an object
+                const parsed = JSON.parse(raw);
+
+                document.getElementById("summary").textContent = parsed.summary;
+
+                const product = parsed.products[0];
+
+                document.getElementById("Product").textContent = product.Product;
+                document.getElementById("Price").textContent = product.Price;
+                createHtmlList(document.getElementById("Benefit"), product.Benefit);
+                document.getElementById("Marketing_Blurb").textContent = product["Marketing Blurb"];
+
+                spinner.style.display = "none";
+                result.style.display = "";
+            })
+            .catch(err => {
+                spinner.style.display = "none";
+                alert("Something went wrong: " + err.message);
+            });
+        });
+
+        function createHtmlList(element, items) {
+            const ul = document.createElement("ul");
+            items.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                ul.appendChild(li);
+            });
+            element.innerHTML = "";
+            element.appendChild(ul);
+        }
+    </script>
+</body>
+</html>
