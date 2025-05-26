@@ -55,29 +55,25 @@
 
             const formData = new FormData(form);
 
-            fetch("/process", {
+           fetch("/process", {
                 method: "POST",
                 body: formData
-            })
-            .then(response => {
-                if (!response.ok) throw new Error("POST request failed");
-                return response.json();
-            })
-            .then(data => {
-                let raw = data.summary_and_products;
+                })
+                .then(response => response.json())
+                .then(data => {
+                const parsed = data.summary_and_products;
 
-                // Strip "Final Answer: " prefix if present
-                if (raw.startsWith("Final Answer:")) {
-                    raw = raw.replace("Final Answer:", "").trim();
+                // ✅ Properly check ProductList and handle missing case
+                const products = parsed.ProductList || [];
+                if (products.length === 0) {
+                    alert("No products returned.");
+                    spinner.style.display = "none";
+                    return;
                 }
 
-                // Parse the string into an object
-                const parsed = JSON.parse(raw);
+                const product = products[0];
 
                 document.getElementById("summary").textContent = parsed.summary;
-
-                const product = parsed.products[0];
-
                 document.getElementById("Product").textContent = product.Product;
                 document.getElementById("Price").textContent = product.Price;
                 createHtmlList(document.getElementById("Benefit"), product.Benefit);
@@ -85,11 +81,11 @@
 
                 spinner.style.display = "none";
                 result.style.display = "";
-            })
-            .catch(err => {
+                })
+                .catch(error => {
+                alert("Something went wrong: " + error);
                 spinner.style.display = "none";
-                alert("Something went wrong: " + err.message);
-            });
+                });
         });
 
         function createHtmlList(element, items) {
